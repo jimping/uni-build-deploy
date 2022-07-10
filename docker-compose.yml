@@ -19,12 +19,17 @@ services:
   nginx:
     image: docker.pkg.github.com/jimping/uni-build-deploy/nginx
     restart: unless-stopped
-    ports:
-      - "80:80"
     volumes:
       - ./storage/app/public:/application/public/storage
     networks:
       sec:
+      traefik:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.uni.rule=Host(`uni-build-deploy.snserv.net`)"
+      - "traefik.http.routers.uni.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.uni.entrypoints=websecure"
+      - "traefik.http.routers.uni.tls=true"
 
   mysql:
     image: mariadb:10.5
@@ -64,3 +69,5 @@ services:
 
 networks:
   sec:
+  traefik:
+    external: true
