@@ -12,24 +12,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+
     - uses: satackey/action-docker-layer-caching@v0.0.11
       continue-on-error: true
-    - name: Build and Deploy
+
+    - name: Environment
       env:
         ENV_FILE: ${{ secrets.ENV_FILE }}
       run: |
         echo "$ENV_FILE" > .env
         echo "" >> .env
-        echo "VUE_APP_RELEASE=$GITHUB_SHA" >> .env
         echo "$GITHUB_SHA" > .commit_hash
 
+    - name: Build
+      run: |
         docker login docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
         docker build --pull --target php --file docker/Dockerfile --tag "docker.pkg.github.com/$GITHUB_REPOSITORY/php" .
         docker build --pull --target nginx --file docker/Dockerfile --tag "docker.pkg.github.com/$GITHUB_REPOSITORY/nginx" .
         docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/php"
         docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/nginx"
 
-    - name: Copy files
+    - name: Test
+      run: |
+        docker exec -it "docker.pkg.github.com/$GITHUB_REPOSITORY/php" php artisan test
+
+    - name: Deploy - Copy files
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.HOST }}
@@ -38,7 +45,7 @@ jobs:
         source: ".env,docker-compose.yml,cron.json"
         target: ${{ secrets.PATH }}
 
-    - name: Rebuild Container
+    - name: Deploy - Rebuild Container
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
