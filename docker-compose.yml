@@ -1,0 +1,66 @@
+version: '3.5'
+
+services:
+  sec:
+    image: docker.pkg.github.com/jimping/uni-build-deploy/php
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - HTTPS=1
+    volumes:
+      - ./storage:/application/storage
+      - ./storage/app/public:/application/public/storage
+    depends_on:
+      - redis
+      - mysql
+    networks:
+      sec:
+
+  nginx:
+    image: docker.pkg.github.com/jimping/uni-build-deploy/nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./storage/app/public:/application/public/storage
+    networks:
+      sec:
+
+  mysql:
+    image: mariadb:10.5
+    restart: unless-stopped
+    env_file: ./.env
+    ports:
+      - "127.0.0.1:3308:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=sec
+      - MYSQL_DATABASE=sec
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    networks:
+      sec:
+
+  scheduler:
+    image: docker.pkg.github.com/5anker/docker-crontab/docker-crontab
+    restart: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - sec
+    depends_on:
+      - sec
+    environment:
+      APP_COMMENT: "sec Scheduler"
+      APP_PROJECT: "sec"
+      APP_SCHEDULE: "@every 1m"
+      APP_COMMAND: "php artisan schedule:run"
+      APP_CONTAINER: sec
+
+  redis:
+    image: redis
+    restart: unless-stopped
+    networks:
+      sec:
+
+networks:
+  sec:
