@@ -39,7 +39,7 @@ COPY --chown=www-data:www-data composer.json composer.lock ./
 
 RUN chown www-data:www-data .
 USER www-data
-RUN composer install --no-scripts --no-autoloader --no-dev
+RUN composer install --no-scripts --no-autoloader
 
 COPY --chown=www-data:www-data . .
 COPY --chown=www-data:www-data --from=nodejs /application/public /application/public
