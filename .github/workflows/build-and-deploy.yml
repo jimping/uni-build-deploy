@@ -34,7 +34,7 @@ jobs:
 
     - name: Test
       run: |
-        docker exec -it "docker.pkg.github.com/$GITHUB_REPOSITORY/php" php artisan test
+        docker run -it "docker.pkg.github.com/$GITHUB_REPOSITORY/php" php artisan test
 
     - name: Deploy - Copy files
       uses: appleboy/scp-action@master
