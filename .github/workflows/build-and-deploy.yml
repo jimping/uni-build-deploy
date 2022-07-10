@@ -54,3 +54,12 @@ jobs:
         script: |
           docker login docker.pkg.github.com --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }}
           cd ${{ secrets.PATH }} && docker-compose pull && docker-compose up -d --remove-orphans
+
+    - name: Deploy - Migrate DB
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.KEY }}
+        script: |
+          cd ${{ secrets.PATH }} && docker-compose exec -T sec php artisan migrate --force

@@ -32,11 +32,11 @@ services:
       - "traefik.http.routers.uni.tls=true"
 
   mysql:
-    image: mariadb:10.5
+    image: mariadb:10.7
     restart: unless-stopped
     env_file: ./.env
     ports:
-      - "127.0.0.1:3308:3306"
+      - "127.0.0.1:3339:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=sec
       - MYSQL_DATABASE=sec
@@ -62,7 +62,7 @@ services:
       APP_CONTAINER: sec
 
   redis:
-    image: redis
+    image: redis:7.0
     restart: unless-stopped
     networks:
       sec:
