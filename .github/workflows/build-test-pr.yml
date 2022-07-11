@@ -1,7 +1,7 @@
-name: Build, Test
+name: Build, Test for PR
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
 
   workflow_dispatch:
