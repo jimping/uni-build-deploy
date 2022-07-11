@@ -28,8 +28,6 @@ jobs:
         docker login docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
         docker build --pull --target php --file docker/Dockerfile --tag "docker.pkg.github.com/$GITHUB_REPOSITORY/php" .
         docker build --pull --target nginx --file docker/Dockerfile --tag "docker.pkg.github.com/$GITHUB_REPOSITORY/nginx" .
-        docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/php"
-        docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/nginx"
 
     - name: Test
       run: |
