@@ -1,0 +1,38 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: satackey/action-docker-layer-caching@v0.0.11
+      continue-on-error: true
+
+    - name: Environment
+      env:
+        ENV_FILE: ${{ secrets.ENV_FILE }}
+      run: |
+        echo "$ENV_FILE" > .env
+        echo "" >> .env
+        echo "$GITHUB_SHA" > .commit_hash
+
+    - name: Build
+      run: |
+        docker login docker.pkg.github.com --username $GITHUB_ACTOR --password ${{ secrets.GITHUB_TOKEN }}
+        docker build --pull --target php --file docker/Dockerfile --tag "docker.pkg.github.com/$GITHUB_REPOSITORY/php" .
+        docker build --pull --target nginx --file docker/Dockerfile --tag "docker.pkg.github.com/$GITHUB_REPOSITORY/nginx" .
+        docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/php"
+        docker push "docker.pkg.github.com/$GITHUB_REPOSITORY/nginx"
+
+    - name: Test
+      run: |
+        docker run "docker.pkg.github.com/$GITHUB_REPOSITORY/php" php artisan test
